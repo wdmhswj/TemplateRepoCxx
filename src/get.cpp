@@ -2,10 +2,11 @@
 #include <iostream>
 
 int main(void) {
-    httplib::Client cli("http://example.com");
+    // httplib::Client cli("http://example.com");
+    httplib::Client cli("http://localhost:8080");
 
     // Send a GET request to the specified path
-    if (auto res = cli.Get("/")) {
+    if (auto res = cli.Get("/hi")) {
         if (res->status == 200) { // Check if the status code is 200 OK
             std::cout << res->body << std::endl; // Print the response body
         } else {

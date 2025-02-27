@@ -8,3 +8,5 @@ foreach(v ${all_tests})
 
     add_executable(${target_name} ${v})
 endforeach()
+
+target_link_libraries(test_WebCrawler PRIVATE WebCrawler)

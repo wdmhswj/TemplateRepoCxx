@@ -93,7 +93,9 @@
         "forward_list": "cpp",
         "executor": "cpp",
         "io_context": "cpp",
-        "netfwd": "cpp"
+        "netfwd": "cpp",
+        "regex": "cpp",
+        "valarray": "cpp"
     },
     "cmake.buildTask": true
 }
