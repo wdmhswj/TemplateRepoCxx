@@ -23,4 +23,10 @@ endif()
 target_link_libraries(server ${OPENSSL_LIBRARIES})
 
 add_library(WebCrawler SHARED WebCrawler/WebCrawler.cpp)
-target_link_libraries(WebCrawler ${OPENSSL_LIBRARIES})
+target_link_libraries(WebCrawler 
+PUBLIC
+OpenSSL::SSL 
+OpenSSL::Crypto 
+PRIVATE
+sqlite3
+)

@@ -77,4 +77,6 @@ perf.data*
 palette.map
 
 # public/index.html for httpd
-public/
+publicii/
+
+*.html

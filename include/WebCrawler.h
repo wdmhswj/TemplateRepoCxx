@@ -17,146 +17,66 @@
 #include <httplib/httplib.h>
 #include <regex>
 #include <chrono>
+#include "Database.h"
 
 class WebCrawler {
 public:
-    // 爬虫配置结构体
-    // struct Config {
-    //     int max_threads = 4;                  // 最大线程数
-    //     int connection_timeout = 5;           // 连接超时（秒）
-    //     int read_timeout = 5;                 // 读取超时（秒）
-    //     int retry_count = 3;                  // 重试次数
-    //     int delay_between_requests = 500;     // 请求间隔（毫秒）
-    //     int max_depth = 2;                    // 最大爬取深度
-    //     int max_urls = 100;                   // 最大URL数量
-    //     bool follow_redirects = true;         // 是否跟随重定向
-    //     bool respect_robots_txt = true;       // 是否尊重robots.txt
-    //     std::string user_agent = "Mozilla/5.0 (compatible; MyCrawler/1.0)";
-    //     std::string proxy_host = "";          // 代理主机
-    //     int proxy_port = 0;                   // 代理端口
-    //     std::string proxy_username = "";      // 代理用户名
-    //     std::string proxy_password = "";      // 代理密码
-    // };
-struct Config {
-        int max_threads;                  // 最大线程数
-        int connection_timeout;           // 连接超时（秒）
-        int read_timeout;                 // 读取超时（秒）
-        int retry_count;                  // 重试次数
-        int delay_between_requests;       // 请求间隔（毫秒）
-        int max_depth;                    // 最大爬取深度
-        int max_urls;                     // 最大URL数量
-        bool follow_redirects;            // 是否跟随重定向
-        bool respect_robots_txt;          // 是否尊重robots.txt
-        std::string user_agent;
-        std::string proxy_host;           // 代理主机
-        int proxy_port;                   // 代理端口
-        std::string proxy_username;       // 代理用户名
-        std::string proxy_password;       // 代理密码
-        
-        // 构造函数，设置默认值
-        Config() : 
-            max_threads(4),
-            connection_timeout(5),
-            read_timeout(5),
-            retry_count(3),
-            delay_between_requests(500),
-            max_depth(2),
-            max_urls(100),
-            follow_redirects(true),
-            respect_robots_txt(true),
-            user_agent("Mozilla/5.0 (compatible; MyCrawler/1.0)"),
-            proxy_host(""),
-            proxy_port(0),
-            proxy_username(""),
-            proxy_password("")
-        {}
+    // 配置结构体
+    struct Config {
+        int max_threads = 4;    // 最大线程数
+        int max_depth = 2;      // 最大爬取深度
+        int max_urls = 100;     // 最大爬取url数目
+        bool follow_redirects = true;  // 是否跟随HTTP重定向
+        std::string user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"; // HTTP请求头的用户代理字段
+        Config(int m_t, int m_d, int m_u, bool f_r)
+        : max_threads(m_t)
+        , max_depth(m_d)
+        , max_urls(m_u)
+        , follow_redirects(f_r) {}
+        Config() {}
     };
+
     // 爬取结果结构体
     struct CrawlResult {
-        std::string url;                      // 爬取的URL
-        int status_code = 0;                  // HTTP状态码
-        std::string content_type;             // 内容类型
-        std::string body;                     // 响应体
-        std::unordered_map<std::string, std::string> headers; // 响应头
-        bool success = false;                 // 是否成功
-        std::string error_message;            // 错误信息
-        int depth = 0;                        // 爬取深度
+        std::string url;
+        int status_code;    // 状态码
+        std::string body;   // 爬取的网页内容主体
+        bool success;       // 是否爬取成功
+        std::string error_message;  // 错误信息
+        CrawlResult(const std::string& u, int s_c, const std::string& b, bool s, const std::string& e_m)
+        : url(u)
+        , status_code(s_c)
+        , body(b)
+        , success(s)
+        , error_message(e_m) {}
+        CrawlResult() {}
     };
 
-    // 构造函数
-    WebCrawler(const Config& config = Config());
-    
-    // 析构函数
+    // 构造/析构
+    WebCrawler(const std::string& db_name, const Config& config = Config{});
     ~WebCrawler();
 
-    // 添加初始URL
+    // 成员函数
     void addUrl(const std::string& url, int depth = 0);
-    
-    // 添加URL过滤器（返回true表示接受该URL）
-    void addUrlFilter(std::function<bool(const std::string&)> filter);
-    
-    // 添加内容处理器
-    void addContentHandler(std::function<void(const CrawlResult&)> handler);
-    
-    // 开始爬取
     void start();
-    
-    // 停止爬取
     void stop();
     
-    // 等待爬取完成
-    void waitForCompletion();
-    
-    // 保存URL到文件
-    void saveUrlsToFile(const std::string& filename);
-    
-    // 从文件加载URL
-    void loadUrlsFromFile(const std::string& filename);
-    
-    // 获取爬取结果统计
-    std::unordered_map<std::string, int> getStats();
-
 private:
-    // 规范化URL
-    std::string normalizeUrl(const std::string& base_url, const std::string& url);
-    
-    // 从HTML中提取链接
-    std::vector<std::string> extractLinks(const std::string& html, const std::string& base_url);
-    
-    // 解析robots.txt
-    void parseRobotsTxt(const std::string& domain);
-    
-    // 检查URL是否允许爬取
-    bool isUrlAllowed(const std::string& url);
-    
-    // 爬取单个URL
-    CrawlResult crawlUrl(const std::string& url, int depth);
-    
-    // 工作线程函数
-    void workerThread();
-    
-    // 添加URL到队列（内部使用）
-    void enqueueUrl(const std::string& url, int depth);
-    
-    // 获取域名
-    std::string getDomain(const std::string& url);
-    
-    // 创建HTTP客户端
-    std::unique_ptr<httplib::Client> createClient(const std::string& url);
-
     // 成员变量
-    Config config_;
-    std::queue<std::pair<std::string, int>> url_queue_;     // URL队列 <url, depth>
-    std::unordered_set<std::string> visited_urls_;          // 已访问URL集合
-    std::unordered_map<std::string, std::unordered_set<std::string>> robots_disallowed_; // robots.txt禁止的路径
-    std::vector<std::function<bool(const std::string&)>> url_filters_; // URL过滤器
-    std::vector<std::function<void(const CrawlResult&)>> content_handlers_; // 内容处理器
-    std::vector<std::thread> worker_threads_;               // 工作线程
-    std::mutex mutex_;                                      // 互斥锁
-    std::condition_variable cv_;                            // 条件变量
-    std::atomic<bool> running_;                             // 是否运行中
-    std::atomic<int> active_threads_;                       // 活动线程数
-    std::unordered_map<std::string, int> stats_;            // 统计信息
+    Config m_config;
+    std::queue<std::pair<std::string, int>> m_url_queue;    // 待爬取的URL及其和深度
+    std::unordered_set<std::string> m_visited_urls; // 已爬取的URL的无序集合
+    std::vector<std::thread> m_workers; // 爬取所用的线程对象
+    std::mutex m_mutex; // 线程锁
+    std::condition_variable m_cv;   // 条件变量，用于线程同步
+    std::atomic<bool> m_running;    // 原子布尔值，确保多线程安全
+    Database m_db;  // 网页内容存储数据库
+    bool m_db_opened = false;   // 数据库是否正常打开
+
+    // 成员函数
+    void workerThread();
+    CrawlResult crawUrl(const std::string& url);
+
 };
 
 #endif // WEB_CRAWLER_H

@@ -95,7 +95,9 @@
         "io_context": "cpp",
         "netfwd": "cpp",
         "regex": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "charconv": "cpp",
+        "format": "cpp"
     },
     "cmake.buildTask": true
 }
