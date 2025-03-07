@@ -8,6 +8,6 @@ int main(int argc, char** argv) {
     }
     
     Database db(argv[1]);
-    db.fetchAllPages();
+    db.fetchAllPages(100);
     return 0;
 }

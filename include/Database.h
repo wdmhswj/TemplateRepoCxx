@@ -43,7 +43,7 @@ public:
     }
 
     // ✅ 新增方法：读取数据库中所有存储的网页信息
-    void fetchAllPages() {
+    void fetchAllPages(int char_num = 50) {
         std::string sql = "SELECT id, url, status_code, content, fetch_time FROM pages;";
         sqlite3_stmt* stmt;
 
@@ -64,7 +64,7 @@ public:
             std::cout << "🌐 URL: " << url << "\n";
             std::cout << "📡 Status: " << status_code << "\n";
             std::cout << "🕒 Time: " << fetch_time << "\n";
-            std::cout << "📝 Content: " << content.substr(0, 50) << "...\n"; // 仅显示前 50 个字符
+            std::cout << "📝 Content: " << content.substr(0, char_num) << "...\n"; // 仅显示前 50 个字符
             std::cout << "------------------------\n";
         }
 
